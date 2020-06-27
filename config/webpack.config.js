@@ -2,23 +2,47 @@ const path = require("path");
 // * plugin 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-// const webpack = require('webpack');
+
+const paths = require('./paths')
 
 module.exports = env => {
 
+
+  const ouput = env.NODE_ENV === 'development' ? 
+  {
+    path: undefined,
+    pathinfo: false,
+    filename: 'res/js/bundle.js',
+    chunkFilename: 'res/js/[name].chunk.js'
+  } : 
+  {
+    path: paths.appBuild,
+    pathinfo: true,
+    filename: 'res/js/[name].[contenthash:8].js',
+    chunkFilename: 'res/js/[name].[contenthash:8].chunk.js'
+  };
+
   return {
     mode: env.NODE_ENV,
+    bail: false,
     devtool: 'inline-source-map',
     
     entry: {
       app: [
+
         '@babel/polyfill',
-        './src/index.js'
-      ],
+        require.resolve('react-dev-utils/webpackHotDevClient'),
+        // 'src/index.js',
+        paths.appIndexJs,
+        ...paths.appVendorJsList,
+      ].filter(Boolean),
       // another: './src/another-module.js',
       // index: { import: './src/index.js', dependOn: 'shared' },
       // another: { import: './src/another-module.js', dependOn: 'shared' },
       // shared: 'lodash',
+      ext: [
+        'semantic-ui-react'
+      ],
     },
     //devtool 배포용 옵션은 'cheap-module-source-map'
     //devtool 개발용 옵션은 'inline-source-map'
@@ -30,15 +54,19 @@ module.exports = env => {
 
     output: {
       // filename: "bundle.js",
-      filename: '[name].[contenthash].js',
+      // filename: '[name].[contenthash].js',
       //node_modules에 있는 module 사용 시 상단에 import를 하면 메모리 낭비로 이어질 수 있다.
       //해당 파일이 메모리 올라가면 해당 모듈도 같이 계속 같이 떠있는것과 같으니
       //사용 시에만 import문을 이용해 사용하게 하는 설정
       //ex:: import('lodash').then(({ default: _ }) =>  _.join(['hello', 'webpack'], ' '))
       //ex:: const { default: _ } = await import('lodash')
-      chunkFilename: '[name].[contenthash].js',
-      publicPath: '/',
-      path: path.resolve(__dirname, 'dist'),
+
+      // chunkFilename: '[name].[contenthash].js',
+      // publicPath: '/',
+      // path: path.resolve(__dirname, 'dist'),
+      ...ouput,
+      futureEmitAssets: true,
+
     },
 
 
